@@ -1,0 +1,156 @@
+---
+title: "UE20CS312 - Data Analytics - Worksheet 1a - Part 1 - Exploring data with R"
+subtitle: "PES University"
+author:
+- 'Purvik S Nukal, Dept. of CSE - PES1UG20CS315'
+output: pdf_document
+urlcolor: blue
+editor_options:
+markdown:
+wrap: 72
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+df = read_csv('D:/PES University/5th sem/Data analytics/lab1/top_1000_instagrammers.csv')
+```
+
+```{r}
+df
+```
+
+```{r}
+summary(df)
+
+```
+
+                   
+
+#*Since the data is not in usable format, we have to convert the strings into numeric data format.*                 
+```{r}
+df$'Authentic Engagement'<-str_replace(df$'Authentic Engagement',"M","1e6")
+df$'Authentic Engagement'<-str_replace(df$'Authentic Engagement',"K","1e3")
+df$'Authentic Engagement'<- as.numeric(df$'Authentic Engagement')
+```
+
+```{r}
+df$Followers<-str_replace(df$Followers,"M","1e6")
+df$Followers<-str_replace(df$Followers,"K","1e3")
+df$Followers<- as.numeric(df$Followers)
+```
+
+```{r}
+df$'Engagement Avg.'<-str_replace(df$'Engagement Avg.',"M","1e6")
+df$'Engagement Avg.'<-str_replace(df$'Engagement Avg.',"K","1e3")
+df$'Engagement Avg.'<- as.numeric(df$'Engagement Avg.')
+```
+
+
+```{r}
+df
+
+```
+
+
+
+#**Question1**
+```{r}
+summary(df)
+
+```
+
+
+ 
+#*Mean, Median, Min, Max, 1st Quantile, 3rd Quantile are mentioned in the summary above.*
+
+
+#*Calculation for Mode*
+```{r}
+mode_fuc <- function(v) {
+     uniqv <- unique(v)
+    uniqv[which.max(tabulate(match(v, uniqv)))]
+ }
+
+```
+```{r}
+mode_fuc(df$Followers)
+
+```
+
+```{r}
+mode_fuc(df$`Authentic Engagement`)
+
+```
+
+```{r}
+mode_fuc(df$`Engagement Avg.`)
+
+```
+
+
+#*Calculation for Standard Deviation*
+
+```{r}
+sd(df$Followers)
+
+```
+
+
+
+
+```{r}
+sd(df$`Authentic Engagement`)
+
+```
+
+
+
+```{r}
+sd(df$`Engagement Avg.`)
+```
+
+#*Since the standard Deviation is more, it indicates that there is a high variation in the authentic engagement of the instagrammers.Some of the instagrammers engage with their followers much more than others.Some of the instagrammers have large amount of followers, even though their engagement is low. This is because of their popularity and fame outside instagram like sports, movies etc.*
+
+#*My instagram account is no where close to the top 1000. The number of followers they have are no match to mine.*
+
+#**Question2**
+
+
+```{r}
+lst=aggregate(list(Followers = df$Followers),list(Country = df$'Audience Country'),FUN=sum)
+lst
+```
+
+
+```{r}
+ggplot(lst,aes(x=Country,y=Followers)) + geom_bar(stat="identity") + theme(axis.text.x = element_text(angle = 90))
+
+```
+#*united States has the highest number of Followers.*
+#*India has 10882670000 followers and it has ranked 2nd compared to other countries.*
+
+
+
+
+#**Question3**
+
+```{r}
+boxplot(df$'Authentic Engagement', main = "Boxplot of Authentic Instagram Engagement of top 1000 Instagrammers")
+
+```
+
+#*From this box plot it, we can understand that a large amount of instagrammers have a low Authentic Engagement and those who have a high amount of Authentic Engagement are outliersin this.*
+
+
+
+
+#**Conclusion**
+
+#**I have around 300 followers on Instagram and my category is private account category. I spend around 15 to 20 minutes on Instagram daily on college days and around 45 minutes on holidays.**
+#**My profile in terms of followers is as far from the top 1000 instagrammers as the distance from sun to neptune is. It is very small compared to them.**
+#**If I was asked to become an influencer, I would first leave this college as it would take away a lot of my time in form of assignments. Then I would use that time to create posts, videos and reels about an intresting topic. I would post stories frequently. I would become more active. I would start creating good content and start uploading them. I would even do livestreams on sports, cinema, music and other similar domains as these domains are mostly what the top 1000 instagrammers engage in.**
+
+#**Thank You!!!!**

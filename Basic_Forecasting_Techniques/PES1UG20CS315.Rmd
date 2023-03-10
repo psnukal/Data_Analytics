@@ -1,0 +1,218 @@
+---
+title: "PES University, Bangalore"
+subtitle: "Established under Karnataka Act No. 16 of 2013"
+author: 
+  - "UE20CS312 - Data Analytics - Worksheet 3a - Basic Forecasting Techniques"
+  -  "Purvik S Nukal, Dept. of CSE - PES1UG20CS315"
+output: pdf_document
+urlcolor: blue
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+### Time Series Data and Basic Forecasting Techniques
+Time Series data is any data that is collected at regular time intervals, with changing observations at every time interval. Processing time series data effectively can help gain meaningful insights into how a quantity changes with time. 
+
+Forecasting a quantity into the future is an essential task, that predicts future values at any particular time. Forecasts can be made using various techniques like Exponential Smoothing to much more complex techniques such as Recurrent Neural Networks. Let's try to process time-series data and forecast values using basic techniques!
+
+### Prerequisites
+- Revise the following concepts
+  - Components of Time-Series Data
+  - Single, Double and Triple Exponential Smoothing 
+  - Regression (Refer to worksheets and slides from Unit 2)
+  - Croston's Forecasting
+  - Time-Series Accuracy Metrics 
+  
+### Task
+Let's imagine it is 2012 and you are in the market to buy an Orange Ultrabook Laptop for college. But this laptop is rare to find and expensive. You would want to put your Data Analytics skills to use, and predict the best time to buy your laptop, such that you can get it for the best price! You would also like to predict when the Orange Ultrabook would be in stock and when it would have high demand.
+
+An electronics store collected sales data for their store weekly, from *February 2010* to *October 2012*, a period of 143 months. You have gotten your hands on this, and will use it to predict how the prices will change in the future.
+
+The data for the following tasks can be downloaded from [this Github Repository](https://github.com/Data-Analytics-UE20CS312/Unit-3-Worksheets/blob/master/3a%20-%20Basic%20Forecasting%20Techniques/sales.csv).
+
+### Data Dictionary
+
+    Date - Date on which data was collected (end of the week)
+    Sales - Weekly sales of the store (in $)
+    Holiday_Flag - Boolean Flag. 0 for normal week and 1 for holiday season
+    Temperature - Average temperature during the week
+    Fuel_Price - Average price during the week (in $/gallon)
+    CPI - Consumer Price Index
+    Unemployment - Average percentage of Unemployment in the city
+    Laptop_Demand - Number of Orange Ultrabook laptops sold during the week
+    
+### Data Ingestion and Preprocessing
+
+- Read the file into a `data.frame` object
+```{r csv}
+library(ggplot2)
+library(tidyverse)
+library(InformationValue)
+library(dplyr)
+library(mde)
+library(fpp2)
+df<- read.csv('D:/PES University/5th sem/Data analytics/lab3a/sales.csv')
+head(df)
+```
+
+- Pick out the `Sales` column in the `data.frame`. Most of our time-series analysis will be done on this column.
+```{r}
+sales <- df$Sales
+head(sales)
+```
+
+- The `ts` function is used to create the `ts` object in R. Frequency is 52 as it is weekly data. 
+The start is specified like `start= c(y, m, d)` as we are dealing with weekly data. If it was monthly data we can omit the `d` and for yearly data we can omit the `m` as well.(`c` is the combine function in R)
+
+```{r}
+sales_ts <- ts(sales, frequency = 52, start=c(2010, 2, 5))
+sales_ts
+```
+    
+- Visualize the Time-Series of `Sales` column
+```{r}
+plot.ts(sales_ts)
+```
+
+### Points
+The problems in this worksheet are for a total of 10 points with each problem having a different weightage.
+
+- *Problem 1*: 1 point
+- *Problem 2*: 3 points
+- *Problem 3*: 2 points
+- *Problem 4*: 2 point
+- *Problem 5*: 2 points
+
+### Problem 1 (1 Point)
+Decompose the `Sales` column into trend, seasonal and random components. Plot these components as well (Hint: Look at the `decompose` function).
+
+```{r}
+decomposed <- decompose(sales_ts, 'additive')
+plot(as.ts(decomposed$seasonal))
+plot(as.ts(decomposed$trend))
+plot(as.ts(decomposed$random))
+
+```
+
+```{r}
+plot(decomposed)
+```
+
+   
+### Problem 2 (3 Points)
+- Perform forecasts using Single, Double and Triple Exponential Smoothing. 
+- Plot the forecasts of all three forecasts (different colours) against the true values. (Hint: use `lines`) 
+- **Use only one function needed for all 3 forecasts**, only changing parameters to get each of the 3 models (Hint: Think about alternate names)
+
+#Single Exponential Smoothing
+```{r}
+sales_time_s.train <- window(sales_ts, end=c(2020,40))
+sales_time_s.test <- window(sales_ts, start =c(2011,2))
+
+ses_sales_time_s <- ses(sales_time_s.train,alpha =.2,h=100)
+autoplot(forecast((ses_sales_time_s),col="pink"))
+
+```
+
+#Double Exponential Smoothing
+```{r}
+holt_double_sales_time_s<-holt(sales_time_s.train)
+plot((holt_double_sales_time_s),col="red")
+```
+
+```{r}
+sales_time_s.hw<-ets(sales_time_s.train)
+plot(forecast(sales_time_s.hw),col="yellow")
+
+```
+
+#Triple Exponential Smoothing
+```{r}
+triple_s=HoltWinters(sales_ts,alpha=0.2, beta=0.5, gamma=0.8, seasonal = "additive")
+plot(triple_s,col = "blue")
+```
+
+
+### Problem 3 (2 Points)
+- Forecast `Sales` values by Regression using all other columns. Print summary of regression model. 
+- Plot the predicted values against original as well. (Hint: Regression model predictions will not be a Time Series, so need to get both to common index/x-axis)
+- (Hint: Will not work unless one column is dropped/transformed before including it in the regression. Use the `lm` function to get linear model)
+
+Note: This is Multiple Linear Regression, that is, using all the columns for regression
+
+```{r}
+reg_model<- lm(sales ~ (Holiday_Flag + Unemployment + Laptop_Demand + Temperature + Fuel_Price + CPI),data = df)
+y_pred = predict(reg_model)
+summary(reg_model)
+```
+
+```{r}
+plot(y_pred)
+```
+
+```{r}
+plot(predict(y_pred),df$Sales,xlab="Predicted Values",ylab="Observed Values")
+abline(a = 0,                                        
+       b = 1,
+       col = "blue",
+       lwd = 2)
+```
+
+
+### Problem 4 (2 Points)
+Plot the `Laptop_Demand` column as a time series. Identify the forecasting required for this type of Time-series, and forecast the values for all 143 weeks (Hint: Look at functions in the `forecast` package)
+
+```{r}
+laptop_demand <- ts(df$Laptop_Demand, frequency = 23, start=c(2010, 2, 5))
+head(laptop_demand)
+
+```
+
+```{r}
+plot.ts((laptop_demand),col="red")
+```
+
+```{r}
+Holt_laptop_demand <- HoltWinters(laptop_demand)
+plot(laptop_demand, ylab="laptop_sales", xlim=c(2010,2013),col="red")
+lines(Holt_laptop_demand$fitted[,1], col="blue")
+```
+
+
+### Problem 5 (2 Points)
+Evaluate the accuracy of all 3 Exponential Smoothing models (from Problem 2) and Regression models using the MAPE and RMSE metrics. 
+Comment on which is the best Exponential Smoothing method, and if Regression is better than Exponential Smoothing? 
+Provide a reasoning for why the best model is better suited for the `Sales` data (Bonus Point: reasoning for why the 2 other models perform similarly)
+
+#Accuracy of Single Exponential Smoothing
+```{r}
+accuracy(ses_sales_time_s)
+```
+
+#Accuracy of Double Exponential Smoothing
+```{r}
+accuracy(holt_double_sales_time_s)
+```
+
+
+```{r}
+accuracy(sales_time_s.hw)
+```
+
+#Accuracy of Triple Exponential Smoothing
+```{r}
+accuracy(forecast(triple_s))
+```
+
+#Accuracy of the Regression Model
+```{r}
+accuracy(reg_model)
+```
+```
+
+#Triple Exponential Smoothing (Holt Winters Smoothing) is the best best Exponential Smoothing method.
+#No, regression is not better than Exponential Smoothing.
+# In addition to the equations for single and double smoothing, a third equation is used to handle the seasonality aspect. This is why Triple Exponential Smoothing is better as in the situation given above laptop sales has the seasonality aspect which triple exponential smoothing takes care.
+
+

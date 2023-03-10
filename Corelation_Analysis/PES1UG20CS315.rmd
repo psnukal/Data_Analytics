@@ -1,0 +1,174 @@
+---
+title: "UE20CS312 - Data Analytics - Worksheet 1b - Correlation Analysis"
+subtitle: "PES University"
+author:
+- 'Purvik S Nukal, Dept. of CSE - PES1UG20CS315'
+output: pdf_document
+urlcolor: blue
+editor_options:
+markdown:
+wrap: 72
+---
+
+```{r}
+library(ggpubr)
+
+```
+
+
+```{r}
+library(dplyr)
+
+```
+
+```{r}
+library(ltm)
+
+```
+
+```{r}
+library(psych)
+```
+
+```{r}
+df <- read.csv('D:/PES University/5th sem/Data analytics/lab1b/road_accidents_india_2016.csv', row.names=1)
+```
+
+
+#**Problem1**
+
+
+```{r}
+acc_cols <- grep("Total.accidents", colnames(df), ignore.case=T, value = TRUE)
+```
+
+
+```{r}
+totalAccidents <- data.frame(state..ut=df$State..UT, total_acc=rowSums(df[ ,(acc_cols)], na.rm = TRUE))
+```
+
+
+```{r}
+print.data.frame(totalAccidents)
+```
+
+
+```{r}
+death_cols <- grep("Persons.Killed$", colnames(df), ignore.case = T, value = TRUE)
+```
+
+
+```{r}
+totalAccidents$total_deaths <- rowSums(df[ ,c(death_cols)])
+```
+
+
+```{r}
+totalAccidents$fatality_rate <- totalAccidents$total_deaths/totalAccidents$total_acc
+```
+
+
+```{r}
+totalAccidents$mist_rate <- df$Mist..Foggy...Total.Accidents/totalAccidents$total_acc
+```
+
+
+```{r}
+print.data.frame(totalAccidents)
+```
+
+
+
+#**Problem2**
+
+
+```{r}
+plot(x = totalAccidents$fatality_rate, y = totalAccidents$mist_rate)
+```
+
+
+```{r}
+ r <- cor(totalAccidents$fatality_rate, totalAccidents$mist_rate)
+```
+
+
+```{r}
+r
+```
+
+
+```{r}
+corr_test <- cor.test(totalAccidents$fatality_rate, totalAccidents$mist_rate, method = 'pearson')
+```
+
+
+```{r}
+print(corr_test)
+
+```
+
+From the given outputs we can conclude that since the p value (being 0.08231) is greater than the significance level of 0.05 so we cannot reject the NULL hypothesis.Hence we do not have sufficient evidence to conclude that there is a significant linear relationship between the *fatality rate* of a state and the *mist/foggy* rate.
+
+#**Problem3**
+
+
+```{r}
+totalAccidents$acc_ranks <- rank(desc(totalAccidents$total_acc), ties.method = 'random')
+```
+
+
+```{r}
+totalAccidents$death_ranks <- rank(desc(totalAccidents$total_deaths), ties.method = 'random')
+```
+
+
+```{r}
+rs <- cor(totalAccidents$acc_ranks, totalAccidents$death_ranks, method = 'spearman')
+```
+
+```{r}
+rs
+```
+
+
+```{r}
+degrees <- nrow(totalAccidents)-2
+```
+
+
+```{r}
+t_stat <- (rs - 0.2)/sqrt((1-rs*rs)/(nrow(totalAccidents)-2))
+```
+
+
+```{r}
+t_stat
+```
+
+```{r}
+2*pt(q=t_stat, df=degrees, lower.tail = FALSE)
+```
+
+From the following we can conclude that when tested for a correlation of at least 0.2 with a significance level of 0.05, the t statistic value came out to be 15.1203 as a result of which we rejected the NULL hypothesis and and concluded that there is a strong linear correlation between the 2 rank columns.
+
+
+#**Problem4**
+
+```{r}
+df$hao <- ifelse(df$Hail.Sleet...Total.Accidents>0,1,0)
+a = biserial.cor(y = df$hao, x = df$Rainy...Total.Accidents, use = c("complete.obs"))
+a
+```
+
+#**Problem5**
+
+```{r}
+df$dao <- ifelse(df$Dust.Storm...Total.Accidents>0,1,0)
+ndf = data.frame("Dust_Accidents"= df$dao,"Hail_Accidents"=df$hao)
+contingency = table(ndf)
+contingency
+```
+
+```{r}
+phi(contingency, digits = 10)
+```

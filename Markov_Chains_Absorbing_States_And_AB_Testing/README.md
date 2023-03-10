@@ -63,6 +63,7 @@ As the people of New York are smart the will learn where all the units are prese
 <br>
 <br>
 <br>
+
 ## Problem 3 (4 points)
 
 It seems that there is a bug in **_Move-o-Tron 99_** which makes general crimes and feedback units as absorbing states. After updating the software of **_Move-o-Tron 99_**, Captain Holt wants to find out the effect that Amy Santiago has on the probability of a person giving feedback. So one matrix is generated including Santiago and the other one without. 

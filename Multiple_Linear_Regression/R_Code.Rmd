@@ -3,7 +3,7 @@ title: |
   PES University, Bangalore
 subtitle: "**UE20CS312 - Data Analytics**\n\n**Worksheet 2b : Multiple Linear Regression**\n\nCourse Anchor : Dr. Gowri Srinivasa\n\n\nPrepared by : Nishanth M S - nishanthmsathish.23@gmail.com\n"
 author: 
-  - "UE20CS312 - Data Analytics - Worksheet 2a - Simple Linear Regression"
+  - "UE20CS312 - Data Analytics - Worksheet 2a - Multiple Linear Regression"
   - "Purvik S Nukal, Dept. of CSE - PES1UG20CS315"
 output:
   pdf_document:

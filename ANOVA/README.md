@@ -1,4 +1,4 @@
-<b>Part 1.</b> Exploratory Data Analysis with R
+<h3>Part 1.</h3> Exploratory Data Analysis with R
 Book Club Marketing Dataset
 Charles Book Club (CBC) is a book club that has an active database of 500,000 subscribers. The organization
 sends out monthly mailings to its database of members with the latest promotional offerings. Its marketing
@@ -70,7 +70,7 @@ FirstPurch features.
 
 <br><br>
 
-<b>Part 2.</b> ANOVA
+<h3>Part 2.</h3> ANOVA
 An Analysis of Variance Test, or ANOVA, can be thought of as a generalization of the t-tcsts for more than 2
 groups. The independent t-test is used to compare the Of A condition between two groups. ANOVA is
 used when We want to compare the Of a condition between more than two groups. ANOVA tests if

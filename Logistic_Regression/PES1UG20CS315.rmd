@@ -1,0 +1,183 @@
+---
+title: |
+  PES University, Bangalore
+  Established under the Karnataka Act No. 16 of 2013
+author: "Purvik S Nukal, Dept. of CSE - PES1UG20CS315"
+subtitle: "**UE20CS312 - Data Analytics**\n\n**Worksheet 2c - Logistic Regression**\n\nAnushka
+  Hebbar - anushkahebbar@pesu.pes.edu\n"
+output:
+  pdf_document:
+    fig_width: 6
+    fig_height: 3
+  word_document: default
+urlcolor: blue
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+
+```{r}
+library(tidyverse)
+library(InformationValue)
+library(dplyr)
+library(mde)
+char_preds <- read.csv('D:/PES University/5th sem/Data analytics/lab2c/got_characters.csv')
+head(char_preds)
+
+```
+
+# The Logit Model
+
+The linear regression techniques discussed so far are used to model the relationship between a quantitative response variable and one or more explanatory variables. When the response variable is categorical, other techniques are more suited to the task of classification.
+
+The **logit model**, or **logistic model** models the probability, $p$, that a dichotomous (binary), dependent variable takes on one of two possible outcomes. It achieves this by setting the natural logarithm of the odds of the response variable, called the *log-odds* or *logit*, as a linear function of the explanatory variables.
+
+$$Z_i = \text{log}\left( \frac{p}{1-p}\right) = \beta_0 + \beta_1x + ... + \beta_nx_n \space \text{ for } \space p \in (0,1)$$
+
+Here, $Z_i$ is the log-odds of the response variable taking on a value with probability $p$. 
+
+**Logistic regression** is an algorithm that estimates the parameters, or coefficients, of the linear combination of the logit model. In this worksheet, we will classify a certain binary feature of a dataset using logistic regression.
+
+# A Song of Ice and Fire - GoT Character Dataset
+
+_A Song of Ice and Fire_ by George RR Martin is a series of epic fantasy novels that is popularly known for its TV show adaptation, _Game of Thrones_. The show is well known for its vastly complicated political landscape, large number of characters, and its frequent character deaths.
+
+The given dataset contains comprehensive information on characters from the book series till the 5th book, _A Dance with Dragons_. The data was created by the team at [A Song of Ice and Data](https://got.show/machine-learning-algorithm-predicts-death-game-of-thrones) who scraped it from [the Wiki of Ice and Fire](http://awoiaf.westeros.org/). 
+
+This worksheet will focus on using Logistic Regression to predict whether a character in the SoIaF world remains alive by the end of the 5th book, which is captured by the feature `actual`. 
+
+### Data Dictionary
+
+	actual - Whether the character is alive in the consequent books 
+			(0 if dead, 1 if alive)
+	name - Name of the character
+	title - Character's title
+	male - Gender of the character (1 if male, 0 otherwise)
+	culture - Culture the character is from
+	dateofBirth - Character's DoB
+	mother - Name of the character's mother
+	father - Name of the character's father
+	heir - Name of the character's heir
+	spouse - Name of the character's spouse
+	book1 - Whether the character appears in Book 1, Game of Thrones
+	book2 - Whether the character appears in Book 2, A Clash of Kings
+	book3 - Whether the character appears in Book 3, A Storm of Swords
+	book4 - Whether the character appears in Book 4, A Feast for Crows
+	book5 - Whether the character appears in Book 5, A Dance with Dragons
+	isAliveMother - Whether the character's mother is alive
+	isAliveFather - Whether the character's father is alive
+	isAliveHeir - Whether the character's heir is alive
+	isAliveSpouse - Whether the character's spouse is alive
+	isMarried - Whether the character is married
+	isNoble - Whether the character belongs to a noble family
+	boolDeadRelations - Whether one of the character's relations is dead
+	numDeadRelations - Count of the character's relations that are dead
+	isPopular - Whether the character is popular 
+	popularity - Score of the character's popularity
+
+## Points
+
+The problems for this part of the worksheet are for a total of 10 points, with a non-uniform weightage.
+
+- _Problem 1_ : 1 point
+- _Problem 2_ : 2 points
+- _Problem 3_ : 2 points
+- _Problem 4_ : 3 points
+- _Problem 5_ : 2 points
+
+
+##Problem 1
+```{r}
+n = nrow(char_preds)
+cat("No of characters in dataframe: ",n)
+cat("\n")
+df <- char_preds
+df[df == ""] <- NA 
+(colMeans(is.na(df)))*100
+sort_by_missingness(df,sort_by = "percents", descend = TRUE)
+```
+##Problem 2
+##Step 1
+```{r}
+#missing percentage threshold set to 80%.Columns with beyond 80% missing values are dropped.
+df1 = subset(df, select = -c(mother,isAliveMother,heir,isAliveHeir,spouse,isAliveSpouse,father,isAliveFather) )
+sort_by_missingness(df1,sort_by = "percents", descend = TRUE)
+```
+## Step 2
+Impute missing data in the remaining numeric features with a reasonable statistic. Make sure you observe the distribution of the data in the columns to pick out a reasonable statistic. For categorical variables, convert the columns to numeric features. _Hint: Use the `unclass` function and impute missing categorical feature values with a `-1`._
+```{r}
+summary(df1)
+df1$dateOfBirth[is.na(df1$dateOfBirth)] <- median(df1$dateOfBirth, na.rm = T)
+df1$age[is.na(df1$age)] <- mean(df1$age, na.rm = T)
+#df1
+df2 = df1
+sort_by_missingness(df2,sort_by = "percents", descend = TRUE)
+df2[, c('culture', 'title','house')] <- sapply(df[, c('culture', 'title','house')], unclass)
+df2$culture[is.na(df2$culture)] <- "-1"
+df2$title[is.na(df2$title)] <- "-1"
+df2$house[is.na(df2$house)] <- "-1"
+df2[sapply(df2, is.character)] <- data.matrix(df2[sapply(df2, is.numeric)])
+sort_by_missingness(df2,sort_by = "percents", descend = TRUE)
+```
+##Problem 3
+## Step 1: Check for Class Bias
+```{r}
+barplot(prop.table(table(df2$actual)),
+        col = rainbow(2),
+        ylim = c(0, 0.1),
+        main = "Class Distribution")
+```
+##Step 2
+##Perform undersampling in case of a class bias in the dataset. Create train and test splits. 
+
+```{r}
+set.seed(1)
+sample <- sample(c(TRUE, FALSE), nrow(df2), replace=TRUE, prob=c(0.7,0.3))
+train  <- df2[sample, ]
+test   <- df2[!sample, ]
+```
+
+##Problem 4
+##step 1 : Building logistic regression model
+
+
+```{r message=FALSE, warning=FALSE, results=TRUE}
+logistic_model <- glm(actual ~ title+dateOfBirth+age+popularity+X, 
+                family = binomial, data=train)
+summary(logistic_model)
+predicted <- plogis(predict(logistic_model, test))
+summary(predicted)
+
+```
+##Step 2 : Decide on the Optimal Prediction Probability Cutoff
+
+```{r}
+optCutOff <- optimalCutoff(test$actual, predicted)[1] 
+optCutOff
+```
+##Problem 5
+```{r}
+print("The Misclassification error is:")
+misClassError(test$actual, predicted, threshold = optCutOff)
+
+print("The Sensitivity is:")
+sensitivity(test$actual, predicted, threshold = optCutOff)
+
+print("The Specificity is:")
+specificity(test$actual, predicted, threshold = optCutOff)
+```
+```{r}
+print("The Confusion Matrix is:")
+```
+```{r}
+confusionMatrix(test$actual, predicted, threshold = optCutOff)
+```
+```{r}
+print("The ROC Curve is:")
+```
+
+```{r}
+plotROC(test$actual, predicted)
+```
+

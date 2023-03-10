@@ -1,0 +1,263 @@
+---
+title: "UE20CS312 - Data Analytics - Worksheet 1a - Part 2: EDA with R | ANOVA"
+subtitle: "PES University"
+author:
+- 'Purvik S Nukal, Dept. of CSE - PES1UG20CS315'
+output: pdf_document
+urlcolor: blue
+editor_options:
+markdown:
+wrap: 72
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+library(ggplot2)
+```
+
+
+```{r}
+df = read_csv('D:/PES University/5th sem/Data analytics/lab1a_part2/CharlesBookClubDataset.csv')
+```
+
+```{r}
+head(df)
+```
+
+#**Part1**
+#**Problem 1**
+```{r}
+print(paste("The total number of rows with missing count is", sum(is.na(df))))
+```
+
+```{r}
+print(paste("The total count is", nrow(df)))
+```
+
+#The number of missing values in each column is:
+```{r}
+colSums(is.na(df))
+```
+
+#Cleaning the Dataset
+```{r}
+df1 <- na.omit(df)
+df1
+```
+#The Dataset has been cleaned
+```{r}
+summary(df1)
+```
+#minimum, 1st quartile, median, mean, 3rd quartile, max  are listed in the summary above for all the coulmns
+
+```{r}
+print(paste("The standard variation of Monetry", sd(df1$M)))
+```
+
+```{r}
+print(paste("The standard variation of Recency", sd(df1$R)))
+```
+
+```{r}
+print(paste("The standard variation of Frequency", sd(df1$F)))
+```
+
+```{r}
+"The standard variation of First Purchase 18.2878450196972"
+```
+
+#**Problem 2**
+
+#We have to find out how the frequency distribution of the data looks like to find out what to replace it by.
+```{r}
+ hist(df$R)
+```
+#Recency is right skewed distribution, so it should be replaced by median.
+
+```{r}
+ hist(df$F)
+```
+#Frequency is right skewed distribution, so it should be replaced by median.
+
+```{r}
+ hist(df$M)
+```
+#Monetary Features is normal distribution (almost symmetrical), so it should be replaced by mean.
+
+#Replacing the missing valies:
+```{r}
+df$R[is.na(df$R)]<-median(df$R,na.rm=TRUE)
+```
+
+```{r}
+df$F[is.na(df$F)]<-median(df$F,na.rm=TRUE)
+```
+
+```{r}
+df$M[is.na(df$M)]<-mean(df$M,na.rm=TRUE)
+```
+
+#After filling the missing values, you can see that number of missing values for Recency, Frequency and Monetary featues is 0.
+```{r}
+ colSums(is.na(df))
+```
+
+#**Problem 3**
+
+# To find the bin size, we can use this statistical formula h=2×IQR×n^1/3 and to find the optimum breakpoints we can find the number of bins by using ((maximum value - minimum value) / number of observations).
+```{r}
+Rcode <- cut(df$R, breaks = 3,right = TRUE, dig.lab = 3)
+```
+
+```{r}
+df$Rcode <- c(Rcode)
+```
+
+```{r}
+Fcode <- cut(df$F, breaks = 3,right = TRUE, dig.lab = 3)
+```
+
+```{r}
+df$Fcode <- c(Fcode)
+```
+
+```{r}
+Mcode <- cut(df$M, breaks = 3,right = TRUE, dig.lab = 3)
+```
+
+```{r}
+df$Mcode <- c(Mcode)
+```
+
+```{r}
+summary(df)
+```
+#**Problem 4**
+#4.1
+```{r}
+hist(as.numeric(df$Rcode))
+```
+
+```{r}
+hist(as.numeric(df$Fcode))
+```
+
+```{r}
+hist(as.numeric(df$Mcode))
+```
+
+```{r}
+hist(as.numeric(df$FirstPurch))
+```
+
+#4.2
+```{r}
+df$Florence <- as.logical(df$Florence)
+```
+
+```{r}
+ggplot(df,aes(x=R,y=Florence)) +geom_boxplot() + coord_flip()
+```
+
+```{r}
+ggplot(df,aes(x=F,y=Florence)) +geom_boxplot() + coord_flip()
+```
+
+```{r}
+ggplot(df,aes(x=M,y=Florence)) +geom_boxplot() + coord_flip()
+```
+
+```{r}
+ggplot(df,aes(x=FirstPurch,y=Florence)) +geom_boxplot() + coord_flip()
+```
+
+#4.3
+```{r}
+plot(density(df$R))
+```
+
+```{r}
+plot(density(df$F))
+```
+
+```{r}
+plot(density(df$M))
+```
+
+```{r}
+plot(density(df$FirstPurch))
+```
+
+#**ANOVA**
+#**Part2**
+#**Problem 1**
+#1) Scully can use one-way ANOVA as "No of Items" depends on only one attribute "POI".
+#2) Scully can use "aov" function and then further use "summary" function in R programming.
+#3) These are the different groups Scully is looking at
+
+```{r}
+df_anova1 = read_csv('D:/PES University/5th sem/Data analytics/lab1a_part2/Scenario 1.csv')
+```
+
+```{r}
+unique(df_anova1$POI)
+```
+
+#H0 (Null Hypothesis): The mean of all the groups are equal.
+#H1(Alternate Hypothesis): The mean of all the groups are not equal. It differs for atleast one group.
+```{r}
+anova1 <- aov(df_anova1$'No of items' ~ df_anova1$'POI', data = df_anova1)
+```
+
+```{r}
+summary(anova1)
+```
+#The summary above shows the degrees of freedom, Sum of squares, Mean Square and the F Statistic.
+#Since the p value is greather than 0.05 ( 5% significance), we cannot reject the null hypothesis, we have to consider it.
+
+
+#**Problem 2**
+#1) Scully can use two-way ANOVA as "No of Items" depends on two attributes "POI" and "Priority".
+#2) Scully can use "aov" function with a little change compared to one way anova and then further use "summary" function in R programming.
+#3) 
+#H0 (Null Hypothesis): The mean of all the groups are equal.
+#H1(Alternate Hypothesis): The mean of all the groups are not equal. It differs for atleast one group.
+
+```{r}
+df_anova2 = read_csv('D:/PES University/5th sem/Data analytics/lab1a_part2/Scenario 2.csv')
+```
+```{r}
+anova2 <- aov(df_anova2$'No of items' ~ df_anova2$'POI' * df_anova2$'Priority', data = df_anova1)
+```
+
+```{r}
+summary(anova2)
+```
+#The summary above shows the degrees of freedom, Sum of squares, Mean Square and the F Statistic.
+#Since the p value is greather than 0.05 ( 5% significance), we cannot reject the null hypothesis, we have to consider it.
+
+# 4) Scully has missed the task of taking the global mean into account.
+
+
+#**Problem 4**
+#The Tukey HSD (honestly significant difference) test is a statistical tool used to determine if the relationship between two sets of data is statistically significant – that is, whether there's a strong chance that an observed numerical change in one value is causally related to an observed change in another value.
+#It can be used to find means that are significantly different from each other.
+
+```{r}
+th <- TukeyHSD(anova2)
+```
+
+```{r}
+th
+```
+
+
+```{r}
+plot(th)
+```
+
+From the above graph we can observe that the mean value is varying. So, we can conclude that there is difference between the means of the  the groups.

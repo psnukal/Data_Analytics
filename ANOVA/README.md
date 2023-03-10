@@ -68,7 +68,7 @@ FirstPurch features.
 
 
 
-
+<br><br>
 
 <b>Part 2.</b> ANOVA
 An Analysis of Variance Test, or ANOVA, can be thought of as a generalization of the t-tcsts for more than 2
@@ -131,6 +131,6 @@ without any assumption Of its truth.
 Problem 3 (1 point)
 Hitchcock also wanted to Compare the number of items collected for each pair of Person of Interest and priority.
 He decided to follow the common practice of doing a rnrkey's HSD . The Tukey's Honestly-Significant-
-Difference[TukeyHSD) test lets us see which groups are different from one another.
+Difference (TukeyHSD) test lets us see which groups are different from one another.
 What insights did Hitchcock gain after doing the HSD? (The TukeyHSD function can be used to do
 this test and the output of this function can represented graphically using the plot function.)
